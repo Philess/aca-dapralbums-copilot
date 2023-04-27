@@ -157,8 +157,8 @@ Continue to play with it and see what happens on other pieces of code.
 ### standardized documentation comment (JavaDoc, JsDoc, etc...)
 
 For this one, to trigger the documentation comment generation, you need to respect the specific comment format:
--  `/**` (for JS/TS) in the index.js file for example
-- `///` for C# in the AlbumController.cs of the AlbumApi file for example
+-  `/**` (for JS/TS) in the `index.js` file for example
+- `///` for C# in the `AlbumController.cs` of the AlbumApi file for example
 
 ```cs
 /// <summary>
@@ -175,12 +175,121 @@ public IActionResult Get(int id)
 
 *Copilot can understand and generate natural languages and code language in both way so by combining everything you can use it to `translate code pieces from a language to another one`*
 
-Try
+To translate a piece of code in a specific language, create a new file with the extension of the language you want to translate to (ie: `validator.c` in C language) and try to build the prompt like that:
 
+```c
+// translate the following code from typescript to java:
+// <code here>
+```
+
+And go to a new line to trigger copilot. It will try generate the code in the new language.
+
+```c
+// translate the following code from typescript to c:
+// function validateDate(date: string): Date {
+//     const dateParts = date.split('/');
+//     const day = parseInt(dateParts[0], 10);
+//     const month = parseInt(dateParts[1], 10) - 1;
+//     const year = parseInt(dateParts[2], 10);
+//     return new Date(year, month, day);
+// }
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Date {
+    int day;
+    int month;
+    int year;
+};
+
+struct Date validateDate(char *date) {
+    struct Date d;
+    char *dateParts[3];
+    char *token;
+    int i = 0;
+
+    token = strtok(date, "/");
+    while (token != NULL) {
+        dateParts[i++] = token;
+        token = strtok(NULL, "/");
+    }
+
+    d.day = atoi(dateParts[0]);
+    d.month = atoi(dateParts[1]) - 1;
+    d.year = atoi(dateParts[2]);
+
+    return d;
+}
+```
+
+*It's not working perfectly every time depending on the size and complexity of the code and the language in input the the one in output but i made a lot of test and it's pretty impressive with common languages: `C, Java, C#, TS, Python, Go, VB.Net, F#, Kotlin, etc...`*
+
+*`It's also able to work on more exotic language`: it worked on an language used by a customer that we didn't even found traces on internet. By the way it's not listed in the languages supported by Copilot but it worked. You can't rely only on it to migrate the whole source code without having the developper to understand what happens but it sure will help accelerate the process.*
 
 ## Tests
 
-- Add a new test to the `AlbumController` class to test the new method you added
+Copilot can help generate all kind of tests that are written with code. It Includes `unit tests, integration tests, end to end tests, and load testing` tests with jmeters scripts for example.
+
+- Add a new file `validators.test.ts` in the `albums-viewer/tests` folder
+
+- To have good test suggestion, you hould provide some basic informations to Copilot such as the test framework you want to use:
+
+```ts
+import { describe }
+```
+
+When you start typing the `describe` function, copilot will see you're in test file in TS and suggest you to import the `describe` and `it` functions from Mochai which is a famous test framework for JS/TS.
+Accept the suggestion and it will automatically suggest also the `expect` function from Chai: accept it also.
+
+```ts
+import {describe, it} from 'mocha';
+import {expect} from 'chai';
+```
+
+You have your test framework in place! Now just import the functions you want to test by starting a new line by `import` keyword copilot will see you are in a test file, to test some `validators` because of the name and it will suggest something like that:
+
+```ts
+import {validateAlbumId} from '../src/validators';
+```
+
+It looks ok but because Copilot doesn't have access to all your code, only the open tab and limited informations, you can see that both the path and the function name are wrong.
+<br>
+... At least he tried ... 
+<br>
+but it's a good way to show that Copilot is not magic and you have to use it with your other IDE feature and your brain :)
+
+- Accept the suggestion and change the path. You will be able to have VS Code to give you the available function with the `ctrl+space` shortcut.
+
+- Add a comment with the first function you want to test and let the magic happen:
+
+
+```ts
+import {describe, it} from 'mocha';
+import {expect} from 'chai';
+
+import {validateDate, validateIPV6} from '../utils/validators';
+
+// test the validataDate function
+```
+Boom!
+```ts	
+describe('validateDate', () => {
+    it('should return a date object when given a valid date string', () => {
+        const date = '01/01/2019';
+        const expectedDate = new Date(2019, 0, 1);
+        expect(validateDate(date)).to.deep.equal(expectedDate);
+    });
+
+    it('should throw an error when given an invalid date string', () => {
+        const date = '01/01/2019';
+        expect(() => validateDate(date)).to.throw();
+    });
+});
+```
+
+*You can add other `it` block to add more test cases and also add the tests for the other functions. For example try add a new `it` block for the validateDate function to test that it throws and error when given en empty string.*
 
 ## Refactoring
 
